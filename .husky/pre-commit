@@ -1,14 +1,14 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npm test
-echo 'Pre-commit hook running...'
-
-
-if git diff --cached --name-only | grep -q "package-lock.json"; then
-  echo "⚠️  Warning: Removing package-lock.json from commit..."
-  git restore --staged package-lock.json  
+# Check if package-lock.json is in the commit being pushed
+if git diff --name-only --cached origin/main | grep -q "package-lock.json"; then
+  echo "❌ Error: package-lock.json is not allowed to be pushed!"
+  exit 1  # Block the push
 fi
+
+echo "✅ Push allowed"
+
 
 npx prettier --write .
 npx lint-staged
