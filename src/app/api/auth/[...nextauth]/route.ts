@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs';
-import NextAuth, { NextAuthOptions, Session } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
+import NextAuth, { DefaultSession, NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 import { db } from '@/lib/db';
@@ -12,7 +11,20 @@ interface User {
   password: string;
 }
 
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string;
+    } & DefaultSession['user'];
+  }
+
+  interface User {
+    id: string;
+  }
+}
+
 export const authOptions: NextAuthOptions = {
+  session: { strategy: 'jwt' },
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -27,18 +39,17 @@ export const authOptions: NextAuthOptions = {
           credentials.email,
         ]);
 
-        const users = result[0] as User[];
+        const rows = result[0] as User[];
 
-        if (!users || users.length === 0)
-          throw new Error('Invalid email or password');
+        if (rows.length === 0) throw new Error('Invalid email or password');
 
-        const user = users[0];
+        const user = rows[0];
 
-        const isValidPassword = bcrypt.compareSync(
+        const passwordMatch = bcrypt.compareSync(
           credentials.password,
           user.password,
         );
-        if (!isValidPassword) throw new Error('Invalid email or password');
+        if (!passwordMatch) throw new Error('Invalid email or password');
 
         return { id: user.id.toString(), name: user.name, email: user.email };
       },
@@ -46,10 +57,12 @@ export const authOptions: NextAuthOptions = {
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async session({ session, token }: { session: Session; token: JWT }) {
-      if (session.user) {
-        session.user.id = token.sub as string;
-      }
+    async jwt({ token, user }) {
+      if (user) token.id = user.id;
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) session.user.id = token.id as string;
       return session;
     },
   },

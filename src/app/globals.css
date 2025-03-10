@@ -26,5 +26,5 @@ body {
 }
 
 .input-field {
-  @apply w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 text-black;
+  @apply w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 text-white;
 }
