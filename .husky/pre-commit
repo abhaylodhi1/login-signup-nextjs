@@ -7,7 +7,7 @@ echo 'Pre-commit hook running...'
 
 if git diff --cached --name-only | grep -q "package-lock.json"; then
   echo "⚠️  Warning: Removing package-lock.json from commit..."
-  git restore --staged package-lock.json  # Unstage package-lock.json
+  git restore --staged package-lock.json  
 fi
 
 npx prettier --write .
