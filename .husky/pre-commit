@@ -3,6 +3,11 @@
 
 npm test
 echo 'Pre-commit hook running...'
+
+
+
+
+
 npx prettier --write .
 npx prettier --write .
 npx lint-staged
